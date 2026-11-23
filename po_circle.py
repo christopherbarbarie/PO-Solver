@@ -21,14 +21,37 @@ def flat_disk(h, a, wavelength, eps=np.inf, n=400):
     f = np.exp(-2j * k * R) / R**2 * (i @ nh)[..., None] * ((be @ x * Rp)[..., None] * be - (al @ x * Rs)[..., None] * al)
     return 1j / (2 * np.pi) * np.trapezoid(f.mean(0) * 2 * np.pi * rho[0][:, None], rho[0], axis=0)
 
+def ratio(altitudes, wavelength):
+    ratios = []
+    for h in altitudes:
+        a = fresnel_zone(h, wavelength)
+        E = flat_disk(h, a, wavelength)
+        I = 2 * np.pi * h**2 * abs(E[0]) 
+        ratios.append(I**2/(h * wavelength)**2)
+    return ratios
+
+def plot_ratio(altitudes, ratios, wavelength):
+    plt.style.use('paper')
+    fig, ax = plt.subplots(figsize=(10, 5.6), constrained_layout=True)
+    ax.axhline(1, color='0.5', ls='--', lw=1.5)
+    #ax.text(0.98, 1.0, 'Asymptote', color='0.4', ha='right', va='bottom',
+    #        transform=ax.get_yaxis_transform())
+    x = np.asarray(altitudes) / wavelength
+    ax.plot(x, ratios, color='#1f4e79', lw=3)
+    ax.set_xlim(x[0], x[-1])
+    pad = 0.08 * (1 - min(ratios))
+    ax.set_ylim(min(ratios) - pad, 1 + pad)
+    ax.ticklabel_format(axis='y', useOffset=False)
+    ax.set_xlabel(r'Altitude ($h/\lambda$)')
+    ax.set_ylabel(r'Normalised Phase Integral Power ($I^2/(h\lambda)^2$)')
+    return fig, ax
+
 def main():
     wavelength = 10
-    h = 32000 * wavelength
-    a = fresnel_zone(h, wavelength)
-    E = flat_disk(h, a, wavelength)
-    I = 2 * np.pi * h**2 * abs(E[0]) / wavelength**2
-    print(I**2, (h / wavelength)**2)
+    altitudes = np.linspace(2000*wavelength, 32000*wavelength, 200)
+    ratios = ratio(altitudes, wavelength)
+    fig, _ = plot_ratio(altitudes, ratios, wavelength)
+    fig.savefig('ratio_vs_altitude.png')
 
 if __name__ == "__main__":
     main()
-    print("hello world :O)")
