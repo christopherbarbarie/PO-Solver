@@ -3,9 +3,11 @@ name = "po-solver"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
+    "cmasher>=1.9.4",
     "matplotlib>=3.11.2",
     "numpy>=2.5.4",
     "roughsynth",
+    "scipy>=1.18.1",
 ]
 
 [tool.uv.sources]
